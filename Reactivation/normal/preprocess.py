@@ -155,8 +155,8 @@ def make_cell_masks(data_path, paths, plane):
     """
     stat = np.load(data_path + 'stat.npy', allow_pickle=True)
     accepted_cells = np.load(data_path + 'iscell.npy')[:, 0]
-    fluorescence = np.load(data_path + 'F.npy').sum(axis=1)
-    accepted_cells[fluorescence == 0] = 0
+    #fluorescence = np.load(data_path + 'F.npy').sum(axis=1)
+    #accepted_cells[fluorescence == 0] = 0
     accepted_cells = accepted_cells == 1
     stat = stat[accepted_cells]
     ops = np.load(data_path + 'ops.npy', allow_pickle=True).item()
@@ -309,22 +309,20 @@ def difference_gaussian_filter(deconvolved_vec, fwhm, behavior, paths, save):
         deconvolved_vector_filter_1 = filtered_s0 - filtered_s1
         deconvolved_vector_filter_2 = filtered_s0 - filtered_s2
         deconvolved_vector_filter_3 = filtered_s0 - filtered_s3
-
-        deconvolved_vector_filter_min = pd.concat(
+        
+        ###np i.o. pd
+        deconvolved_vector_filter_min = np.concatenate(
             [deconvolved_vector_filter_1, deconvolved_vector_filter_2,
-             deconvolved_vector_filter_3]).min(level=0)
-
+             deconvolved_vector_filter_3]).min(axis=0) # UPDATED from level=0 -> axis=0!
+        
         deconvolved_vector_filter_min_final = np.array(deconvolved_vec)
         deconvolved_vector_filter_min = np.array(deconvolved_vector_filter_min)
 
         frame = 0
         for i in range(0, len(times_to_use)):
             if times_to_use[i] == 1:
-                deconvolved_vector_filter_min_final[:, i] = deconvolved_vector_filter_min[:, frame]
+                deconvolved_vector_filter_min_final[:, i] = deconvolved_vector_filter_min[frame] # UPDATED from [:,frame] to [frame]
                 frame = frame + 1
-
-        np.save(paths['save_path'] + 'saved_data/deconvolved_filtered', deconvolved_vector_filter_min_final)
-        return deconvolved_vector_filter_min_final
 
 
 def normalized_trial_averaged(activity, behavior, trial_type):
